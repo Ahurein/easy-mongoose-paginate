@@ -7,7 +7,7 @@
 
 Easy-mongoose-paginate is a simple pagination library inspired by [mongoose-paginate-v2](https://www.npmjs.com/package/mongoose-paginate-v2) with two main improvements:
 1) Paginating both aggregate and find query with one package
-3) Adding a direct style usage in addition to plugin approach
+3) Adding a direct style usage in addition to plugin approach -> in progress
 
 The below documentation is not perfect. Feel free to contribute.
 Having any fun usage of the package, feel free to update this readme
@@ -99,7 +99,7 @@ Promise fulfilled with object having properties:
 - `totalPages` {Number} - Total number of pages.
 - `prevPage` {Number} - Previous page number if available or NULL
 - `nextPage` {Number} - Next page number if available or NULL
-- `pagingCounter` {Number} - The starting index/serial/chronological number of first document in current page. (Eg: if page=2 and limit=10, then pagingCounter will be 11)
+- `pagingCounter` {Number} - The starting index/serial/chronological number of first document in current page. (Eg: if page=2 and limit=10, then pagingCounter will be 11). Easy mongoose paginate uses a 1-based page index
 
 Please note that the above properties can be renamed by setting labels attribute.
 

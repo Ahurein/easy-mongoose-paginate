@@ -71,10 +71,10 @@ export interface IDefaultPaginationResult {
 
 
 declare module "easy-mongoose-paginate" {
-    function paginateAggregate<T>(dbQuery: Aggregate<T[]>,
+    function paginateAggregate<T>(stage: Aggregate<T[]>,
         model: Model<T & Document>,
         filter?: AggregateFilter): IPaginationResult;
-    function paginateQuery<T>(dbQuery: Query<T, any>,
+    function paginateQuery<T>(filterQuery: Query<T, any>,
         filter?: QueryFilter): IPaginationResult;
 
 
@@ -88,11 +88,11 @@ declare module "mongoose" {
     interface EasyPaginateModel<T, TQueryHelpers = {}, TMethods = {}>
         extends Model<T, TQueryHelpers, TMethods> {
             paginateAggregate<T>(
-                dbQuery: PipelineStage[],
+                stage: stage[],
                 filter?: AggregateFilter
             ): Promise<IPaginationResult>;
             paginateQuery<T>(
-                dbQuery: FilterQuery<T>,
+                filterQuery: FilterQuery<T>,
                 filter?: QueryFilter
             ): Promise<IPaginationResult>;
     }

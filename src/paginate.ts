@@ -28,19 +28,19 @@ const defaultLabels = {
 }
 
 
-async function paginateQuery<T>(dbQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginationResult<T>> {
-    const filterQuery = {
+async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginationResult<T>> {
+    const updatedFilterQuery = {
         ...defaultFilterValues,
         ...filter,
     }
-    let { limit, page, sort, select, allowDiskUse, populate, labels, collation } = filterQuery;
+    let { limit, page, sort, select, allowDiskUse, populate, labels, collation } = updatedFilterQuery;
     const resultLabels = { ...defaultLabels, ...labels }
     if (!page || page < 1) { page = 1 }
 
-    dbQuery = dbQuery || {}
+    filterQuery = filterQuery || {}
     const model = this as EasyPaginateModel<T>;
     
-    const query = model.find(dbQuery)
+    const query = model.find(filterQuery)
 
     if (collation && Object.keys(collation).length) {
         query.collation(collation);
@@ -48,7 +48,7 @@ async function paginateQuery<T>(dbQuery?: FilterQuery<T>, filter?: QueryFilter):
 
     const skip = (page - 1) * limit;
     query.allowDiskUse(allowDiskUse)
-    query.lean(filterQuery.lean)
+    query.lean(updatedFilterQuery.lean)
 
     const countQuery = query.clone();
     if (sort) {
@@ -75,12 +75,12 @@ async function paginateQuery<T>(dbQuery?: FilterQuery<T>, filter?: QueryFilter):
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
-        [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
-        [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
+        [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page < totalPages ? page + 1 : null,
     };
 }
 
-async function paginateAggregate<T>(dbQuery?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginationResult<T>> {
+async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginationResult<T>> {
     const filterQuery = {
         ...defaultFilterValues,
         ...filter,
@@ -90,7 +90,7 @@ async function paginateAggregate<T>(dbQuery?: PipelineStage[], filter?: Aggregat
     if (!page || page < 1) { page = 1 }
     const model = this as EasyPaginateModel<T>
 
-    const query = model.aggregate(dbQuery || [])
+    const query = model.aggregate(stage || [])
 
     const skip = (page - 1) * limit;
     query.allowDiskUse(allowDiskUse)
@@ -134,8 +134,8 @@ async function paginateAggregate<T>(dbQuery?: PipelineStage[], filter?: Aggregat
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
-        [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
-        [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
+        [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page < totalPages ? page + 1 : null,
     };
 }
 
