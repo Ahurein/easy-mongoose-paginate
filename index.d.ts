@@ -24,7 +24,11 @@ class CommonFilter {
     page?: number;
     limit?: number;
     sort?: string | { [key: string]: any };
-    labels?: ILabels
+    labels?: ILabels;
+    collation?: {
+        locale: string;
+        [key: string]: any
+    } | undefined
 }
 
 export class QueryFilter extends CommonFilter {
@@ -38,8 +42,18 @@ export class AggregateFilter extends CommonFilter {
     lookup?: IAggregateLookup;
 }
 
-export interface IPaginationResult {
-    [x: string]: any;
+export interface IPaginationResult<T> {
+    docs?: T[],
+    totalDocs?: number,
+    limit?: number,
+    hasNextPage?: boolean,
+    hasPrevPage?: boolean,
+    page?: number,
+    totalPages?: number,
+    prevPage?: null | number,
+    nextPage?: null | number,
+    pagingCounter?: number,
+    [x: string]: T[] | number | boolean | null | undefined,
 }
 
 export interface IDefaultPaginationResult {
@@ -56,7 +70,7 @@ export interface IDefaultPaginationResult {
 }
 
 
-declare module "mongoose-simple-paginate" {
+declare module "easy-mongoose-paginate" {
     function paginateAggregate<T>(dbQuery: Aggregate<T[]>,
         model: Model<T & Document>,
         filter?: AggregateFilter): IPaginationResult;
@@ -71,16 +85,15 @@ declare module "mongoose-simple-paginate" {
 }
 
 declare module "mongoose" {
-    interface PaginateModel<T, TQueryHelpers = {}, TMethods = {}>
+    interface EasyPaginateModel<T, TQueryHelpers = {}, TMethods = {}>
         extends Model<T, TQueryHelpers, TMethods> {
             paginateAggregate<T>(
-                dbQuery: Aggregate<T[]>,
-                model: Model<T & Document>,
+                dbQuery: PipelineStage[],
                 filter?: AggregateFilter
-            ): IPaginationResult;
+            ): Promise<IPaginationResult>;
             paginateQuery<T>(
-                dbQuery: Query<T, any>,
+                dbQuery: FilterQuery<T>,
                 filter?: QueryFilter
-            ): IPaginationResult;
+            ): Promise<IPaginationResult>;
     }
 }
