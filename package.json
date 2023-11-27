@@ -1,5 +1,5 @@
 {
-  "name": "mongoose-simple-paginate",
+  "name": "easy-mongoose-paginate",
   "version": "1.0.0",
   "description": "A query and aggregate pagination library for Mongoose with custom labels.",
   "main": "lib/src/index.js",
@@ -20,6 +20,7 @@
     "paginate",
     "query-pagination",
     "aggregate-pagination",
+    "easy-mongoose-paginate",
     "mongoose-plugin",
     "mongodb",
     "database",
@@ -36,10 +37,8 @@
     "url": "https://github.com/Ahurein"
   },
   "license": "MIT",
-  "dependencies": {
-    "mongoose": "^8.0.1"
-  },
   "devDependencies": {
+    "mongoose": "^8.0.1",
     "@types/jest": "^29.5.9",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",

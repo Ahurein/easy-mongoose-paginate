@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es6", "es7", "esnext", "dom"],
+    "lib": ["es5", "es6", "es7", "esnext"],
     "target": "es2018",
     "module": "CommonJS",
     "removeComments": false,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "strict": true,
     "skipLibCheck": true,
     "outDir": "lib",
     "strictPropertyInitialization": false,
@@ -18,6 +17,6 @@
     "downlevelIteration": true,
     "isolatedModules": true
   },
-  // "include": ["src/**/*", "test/**/*", "index.**"],
+  "include": ["src/**/*", "test/**/*", "index.**"],
   "exclude": ["node_modules"]
 }
