@@ -1,5 +1,5 @@
-import { AggregateFilter, IPaginationResult, QueryFilter} from "./types/types";
-import { Aggregate, Model, Query, Schema } from 'mongoose'
+import mongoose, { EasyPaginateModel, FilterQuery, PipelineStage } from 'mongoose'
+import { AggregateFilter, IPaginationResult, QueryFilter } from '..';
 
 const defaultFilterValues = {
     sort: "",
@@ -10,7 +10,8 @@ const defaultFilterValues = {
     project: {},
     allowDiskUse: false,
     lean: false,
-    labels: {}
+    labels: {},
+    collation: undefined
 }
 
 const defaultLabels = {
@@ -26,108 +27,119 @@ const defaultLabels = {
     pagingCounter: "pagingCounter"
 }
 
-class Paginate {
 
-    async paginateQuery<T>(dbQuery: Query<T, any>, filter?: QueryFilter): Promise<IPaginationResult> {
-        const filterQuery = {
-            ...defaultFilterValues,
-            ...filter,
-        }
-        let { limit, page, sort, select, allowDiskUse, populate, labels } = filterQuery;
-        const resultLabels = { ...defaultLabels, ...labels }
-        if(!page || page < 1){page = 1}
+async function paginateQuery<T>(dbQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginationResult<T>> {
+    const filterQuery = {
+        ...defaultFilterValues,
+        ...filter,
+    }
+    let { limit, page, sort, select, allowDiskUse, populate, labels, collation } = filterQuery;
+    const resultLabels = { ...defaultLabels, ...labels }
+    if (!page || page < 1) { page = 1 }
 
-        const skip = (page - 1) * limit;
-        dbQuery.allowDiskUse(allowDiskUse)
-        dbQuery.lean(filterQuery.lean)
+    dbQuery = dbQuery || {}
+    const model = this as EasyPaginateModel<T>;
+    
+    const query = model.find(dbQuery)
 
-        const countQuery = dbQuery.clone();
-        if (sort) {
-            dbQuery.sort(sort)
-        }
-        dbQuery.skip(skip).select(select);
-        if (populate) {
-            dbQuery.populate(populate)
-        }
-        if (limit >= 1) {
-            dbQuery.limit(limit);
-        }
-        const data = await dbQuery;
-
-        const total = await countQuery.countDocuments().exec();
-        const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
-
-        return {
-            [resultLabels.docs]: data,
-            [resultLabels.totalDocs]: total,
-            [resultLabels.limit]: limit,
-            [resultLabels.hasNextPage]: page * limit < total,
-            [resultLabels.hasPrevPage]: page > 1,
-            [resultLabels.page]: page,
-            [resultLabels.totalPages]: totalPages,
-            [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
-            [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
-        };
+    if (collation && Object.keys(collation).length) {
+        query.collation(collation);
     }
 
-    async paginateAggregate<T>(dbQuery: Aggregate<T[]>, model: Model<T>, filter?: AggregateFilter): Promise<IPaginationResult> {
-        const filterQuery = {
-            ...defaultFilterValues,
-            ...filter,
-        }
-        let { limit, page, sort, allowDiskUse, project, lookup, labels } = filterQuery;
-        const resultLabels = { ...defaultLabels, ...labels }
-        if(!page || page < 1){page = 1}
+    const skip = (page - 1) * limit;
+    query.allowDiskUse(allowDiskUse)
+    query.lean(filterQuery.lean)
 
-        
-        const skip = (page - 1) * limit;
-        dbQuery.allowDiskUse(allowDiskUse)
-
-        if (!model) throw new Error("Model is required")
-        const countQuery = [...dbQuery.pipeline()];
-        if (sort) {
-            dbQuery.sort(sort);
-        }
-        dbQuery.skip(skip);
-
-        if (limit >= 1) {
-            dbQuery.limit(limit);
-        }
-        if (lookup && Object.keys(lookup).length) {
-            dbQuery.lookup(lookup);
-        }
-        if (Object.keys(project).length > 0) {
-            dbQuery.project(project);
-        }
-
-        const totalPipeline = countQuery.concat([
-            { $group: { _id: null, count: { $sum: 1 } } },
-        ]);
-
-        const data = await model.aggregate(dbQuery.pipeline());
-        const totalResult = await model.aggregate(totalPipeline);
-        const total = totalResult.length > 0 ? totalResult[0].count : 0;
-        const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
-
-        return {
-            [resultLabels.docs]: data,
-            [resultLabels.totalDocs]: total,
-            [resultLabels.limit]: limit,
-            [resultLabels.hasNextPage]: page * limit < total,
-            [resultLabels.hasPrevPage]: page > 1,
-            [resultLabels.page]: page,
-            [resultLabels.totalPages]: totalPages,
-            [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
-            [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
-        };
+    const countQuery = query.clone();
+    if (sort) {
+        query.sort(sort)
     }
+    query.skip(skip).select(select);
+    if (populate) {
+        query.populate(populate)
+    }
+    if (limit >= 1) {
+        query.limit(limit);
+    }
+    const data = await query;
+
+    const total = await countQuery.countDocuments().exec();
+    const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
+
+    return {
+        [resultLabels.docs]: data,
+        [resultLabels.totalDocs]: total,
+        [resultLabels.limit]: limit,
+        [resultLabels.hasNextPage]: page * limit < total,
+        [resultLabels.hasPrevPage]: page > 1,
+        [resultLabels.page]: page,
+        [resultLabels.totalPages]: totalPages,
+        [resultLabels.pagingCounter]: (page - 1) * limit + 1,
+        [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
+    };
 }
 
-const paginate = new Paginate();
+async function paginateAggregate<T>(dbQuery?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginationResult<T>> {
+    const filterQuery = {
+        ...defaultFilterValues,
+        ...filter,
+    }
+    let { limit, page, sort, allowDiskUse, project, lookup, labels, collation } = filterQuery;
+    const resultLabels = { ...defaultLabels, ...labels }
+    if (!page || page < 1) { page = 1 }
+    const model = this as EasyPaginateModel<T>
 
-const paginatePlugin = (schema: any) => {
-    schema.statics.paginateAggregate = paginate.paginateAggregate;
-    schema.statics.paginateQuery = paginate.paginateQuery;
+    const query = model.aggregate(dbQuery || [])
+
+    const skip = (page - 1) * limit;
+    query.allowDiskUse(allowDiskUse)
+
+    const countQuery = [...query.pipeline()];
+
+    if (collation && Object.keys(collation).length) {
+        query.collation(collation);
+    }
+
+    if (sort) {
+        query.sort(sort);
+    }
+    query.skip(skip);
+
+    if (limit >= 1) {
+        query.limit(limit);
+    }
+    if (lookup && Object.keys(lookup).length) {
+        query.lookup(lookup);
+    }
+    if (Object.keys(project).length > 0) {
+        query.project(project);
+    }
+
+    const totalPipeline = countQuery.concat([
+        { $group: { _id: null, count: { $sum: 1 } } },
+    ]);
+
+    const data = await model.aggregate(query.pipeline());
+    const totalResult = await model.aggregate(totalPipeline);
+    const total = totalResult.length > 0 ? totalResult[0].count : 0;
+    const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
+
+    return {
+        [resultLabels.docs]: data,
+        [resultLabels.totalDocs]: total,
+        [resultLabels.limit]: limit,
+        [resultLabels.hasNextPage]: page * limit < total,
+        [resultLabels.hasPrevPage]: page > 1,
+        [resultLabels.page]: page,
+        [resultLabels.totalPages]: totalPages,
+        [resultLabels.pagingCounter]: (page - 1) * limit + 1,
+        [resultLabels.prevPage]: page < 1 ? null : totalPages > 1 && page > 1 ? page - 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page >= 1 && page < totalPages ? page + 1 : null,
+    };
 }
 
-export {paginate, paginatePlugin};
+export default (schema: mongoose.Schema) => {
+    schema.statics.paginateAggregate = paginateAggregate;
+    schema.statics.paginateQuery = paginateQuery;
+}
