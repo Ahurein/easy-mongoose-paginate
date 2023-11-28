@@ -1,6 +1,6 @@
 {
   "name": "easy-mongoose-paginate",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A query and aggregate pagination library for Mongoose with custom labels.",
   "main": "lib/src/paginate.js",
   "type": "commonjs",

@@ -35,7 +35,9 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
     }
     let { limit, page, sort, select, allowDiskUse, populate, labels, collation } = updatedFilterQuery;
     const resultLabels = { ...defaultLabels, ...labels }
+
     if (!page || page < 1) { page = 1 }
+    if(limit < 1) { limit = 0}
 
     filterQuery = filterQuery || {}
     const model = this as EasyPaginateModel<T>;
@@ -70,13 +72,13 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
         [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
-        [resultLabels.hasNextPage]: page * limit < total,
+        [resultLabels.hasNextPage]: limit < 1? false : page * limit < total,
         [resultLabels.hasPrevPage]: page > 1,
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
-        [resultLabels.nextPage]: totalPages > 1 && page < totalPages ? page + 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null,
     };
 }
 
@@ -87,7 +89,10 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
     }
     let { limit, page, sort, allowDiskUse, project, lookup, labels, collation } = filterQuery;
     const resultLabels = { ...defaultLabels, ...labels }
+
     if (!page || page < 1) { page = 1 }
+    if(limit < 1) { limit = 0}
+
     const model = this as EasyPaginateModel<T>
 
     const query = model.aggregate(stage || [])
@@ -129,13 +134,13 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
         [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
-        [resultLabels.hasNextPage]: page * limit < total,
+        [resultLabels.hasNextPage]: limit < 1? false : page * limit < total,
         [resultLabels.hasPrevPage]: page > 1,
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
-        [resultLabels.nextPage]: totalPages > 1 && page < totalPages ? page + 1 : null,
+        [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null
     };
 }
 
