@@ -71,10 +71,10 @@ export interface IDefaultPaginationResult {
 
 
 declare module "easy-mongoose-paginate" {
-    function paginateAggregate<T>(stage: Aggregate<T[]>,
+    function paginateAggregate<T>(stage: stage[],
         model: Model<T & Document>,
         filter?: AggregateFilter): IPaginationResult;
-    function paginateQuery<T>(filterQuery: Query<T, any>,
+    function paginateQuery<T>(filterQuery: FilterQuery<T>,
         filter?: QueryFilter): IPaginationResult;
 
 
