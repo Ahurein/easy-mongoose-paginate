@@ -143,3 +143,8 @@ export default (schema: mongoose.Schema) => {
     schema.statics.paginateAggregate = paginateAggregate;
     schema.statics.paginateQuery = paginateQuery;
 }
+
+module.exports = (schema: mongoose.Schema) => {
+    schema.statics.paginateAggregate = paginateAggregate;
+    schema.statics.paginateQuery = paginateQuery;
+}
