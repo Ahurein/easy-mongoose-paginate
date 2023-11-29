@@ -24,13 +24,13 @@ Add paginate plugin to your schema and then use model `paginateQuery` and `pagin
 
 ```js
 const mongoose = require('mongoose');
-const EasyPaginateModel = require('easy-mongoose-paginate');
+const easyMongoosePaginate = require('easy-mongoose-paginate');
 
 const userSchema = new mongoose.Schema({
   /* your schema definition */
 });
 
-userSchema.plugin(mongoosePaginate);
+userSchema.plugin(easyMongoosePaginate);
 
 const userModel = mongoose.model('user', userSchema);
 
@@ -213,7 +213,7 @@ var options = {
   lean: true,
   limit: 10,
 };
-const user = await Book.paginateQuery(query, options)
+const books = await Book.paginateQuery(query, options)
 ```
 
 #### Zero or negative limit
