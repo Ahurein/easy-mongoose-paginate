@@ -62,7 +62,7 @@ const userModel = mongoose.model<UserDocument, EasyPaginateModel<UserDocument>>(
 const users = await userModel.paginateQuery({}, { select: "email", limit: 10 }) // Usage
 
 //Aggregate query
-const users: IPaginationResult<T> = await userModel.paginateQuery([], { page: 2, limit: 10 }) // Usage
+const users: IPaginationResult<T> = await userModel.paginateAggregate([], { page: 2, limit: 10 }) // Usage
 ```
 
 ### Model.paginate([query], [options], [callback])

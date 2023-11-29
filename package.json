@@ -1,6 +1,6 @@
 {
   "name": "easy-mongoose-paginate",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A query and aggregate pagination library for Mongoose with custom labels.",
   "main": "lib/src/paginate.js",
   "type": "commonjs",
@@ -14,6 +14,11 @@
     "test:build": "npm run build && node lib/test/index.test.js && exit",
     "build": "tsc"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ahurein/easy-mongoose-paginate"
+  },
+  "homepage": "https://github.com/Ahurein/easy-mongoose-paginate#readme",
   "keywords": [
     "mongoose",
     "pagination",
