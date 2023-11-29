@@ -1,99 +1,128 @@
-import { Aggregate, Model, Query } from "mongoose";
+import { Aggregate, FilterQuery, HydratedDocument, LeanDocument, Model, PipelineStage, Query } from "mongoose";
 
-interface IAggregateLookup {
-    from: string,
-    localField: string,
-    foreignField: string,
-    as: string
-}
-
-interface ILabels {
-    docs?: string,
-    totalDocs?: string,
-    limit?: string,
-    hasNextPage?: string,
-    hasPrevPage?: string,
-    page?: string,
-    totalPages?: string,
-    prevPage?: string,
-    nextPage?: string,
-    pagingCounter?: string
-}
-
-class CommonFilter {
-    page?: number;
-    limit?: number;
-    sort?: string | { [key: string]: any };
-    labels?: ILabels;
-    collation?: {
-        locale: string;
-        [key: string]: any
-    } | undefined
-}
-
-export class QueryFilter extends CommonFilter {
-    select?: string | string[] | { [key: string]: number };
-    populate?: string | string[];
-    lean?: boolean;
-}
-
-export class AggregateFilter extends CommonFilter {
-    project?: { [key: string]: any };
-    lookup?: IAggregateLookup;
-}
-
-export interface IPaginationResult<T> {
-    docs?: T[],
-    totalDocs?: number,
-    limit?: number,
-    hasNextPage?: boolean,
-    hasPrevPage?: boolean,
-    page?: number,
-    totalPages?: number,
-    prevPage?: null | number,
-    nextPage?: null | number,
-    pagingCounter?: number,
-    [x: string]: T[] | number | boolean | null | undefined,
-}
-
-export interface IDefaultPaginationResult {
-    docs: any[],
-    totalDocs: number,
-    limit: number,
-    hasNextPage: boolean,
-    hasPrevPage: boolean,
-    page: number,
-    totalPages: number,
-    prevPage: null | number,
-    nextPage: null | number,
-    pagingCounter: string
-}
-
-
-declare module "easy-mongoose-paginate" {
-    function paginateAggregate<T>(stage: stage[],
-        model: Model<T & Document>,
-        filter?: AggregateFilter): IPaginationResult;
-    function paginateQuery<T>(filterQuery: FilterQuery<T>,
-        filter?: QueryFilter): IPaginationResult;
-
-
-    export {
-        paginateAggregate,
-        paginateQuery
+declare module 'mongoose' {
+    interface labels<T = string | undefined | boolean> {
+        totalDocs?: T;
+        docs?: T;
+        limit?: T;
+        page?: T;
+        nextPage?: T;
+        prevPage?: T;
+        hasNextPage?: T;
+        hasPrevPage?: T;
+        totalPages?: T;
+        pagingCounter?: T;
+        meta?: T;
     }
-}
 
-declare module "mongoose" {
+    interface PaginateOptions {
+        select?: object | string | undefined;
+        collation?: import('mongodb').CollationOptions | undefined;
+        sort?: object | string | undefined;
+        populate?:
+        | PopulateOptions[]
+        | string[]
+        | PopulateOptions
+        | string
+        | PopulateOptions
+        | undefined;
+        projection?: any;
+        lean?: boolean | undefined;
+        leanWithId?: boolean | undefined;
+        offset?: number | undefined;
+        page?: number | undefined;
+        limit?: number | undefined;
+        labels?: CustomLabels | undefined;
+        useEstimatedCount?: boolean | undefined;
+        allowDiskUse?: boolean | undefined;
+        options?: QueryOptions | undefined;
+    }
+
+    class CommonFilter {
+        page?: number;
+        limit?: number;
+        sort?: string | { [key: string]: any };
+        labels?: ILabels;
+        collation?: {
+            locale: string;
+            [key: string]: any
+        } | undefined
+    }
+
+    class QueryFilter extends CommonFilter {
+        select?: string | string[] | { [key: string]: number };
+        populate?: string | string[];
+        lean?: boolean;
+    }
+
+    class AggregateFilter extends CommonFilter {
+        project?: { [key: string]: any };
+        lookup?: IAggregateLookup;
+    }
+
+    interface IPaginateResult<T> {
+        docs?: T[];
+        totalDocs?: number;
+        limit?: number;
+        hasPrevPage?: boolean;
+        hasNextPage?: boolean;
+        page?: number | undefined;
+        totalPages?: number;
+        prevPage?: number | null;
+        nextPage?: number | null;
+        pagingCounter?: number;
+        [labels: string]: T[] | number | boolean | null | undefined;
+      } 
+      
+
+
+    type PaginateDocument<
+        T,
+        TMethods,
+        TVirtuals,
+        O extends PaginateOptions = {}
+    > = O['lean'] extends true
+        ? O['leanWithId'] extends true
+        ? LeanDocument<T & { id: string }>
+        : LeanDocument<T>
+        : HydratedDocument<T, TMethods, TVirtuals>;
+
     interface EasyPaginateModel<T, TQueryHelpers = {}, TMethods = {}>
         extends Model<T, TQueryHelpers, TMethods> {
-            paginateAggregate<T>(
-                stage: stage[],
-                filter?: AggregateFilter
-            ): Promise<IPaginationResult>;
-            paginateQuery<T>(
-                filterQuery: FilterQuery<T>,
-                filter?: QueryFilter
-            ): Promise<IPaginationResult>;
+        paginateAggregate<O extends PaginateOptions>(
+            stage: PipelineStage[],
+            filter?: AggregateFilter
+        ): Promise<PaginateResult<PaginateDocument<T, TMethods, O>>>;
+        paginateQuery<O extends PaginateOptions>(
+            filterQuery: FilterQuery<T>,
+            filter?: QueryFilter
+        ): Promise<PaginateResult<PaginateDocument<T, TMethods, O>>>;
+    }
+
+    interface EasyPaginateModel<T, TQueryHelpers = {}, TMethods = {}>
+        extends Model<T, TQueryHelpers, TMethods> {
+        paginateAggregate<UserType = T, O extends PaginateOptions = PaginateOptions>(
+            stage: PipelineStage[],
+            filter?: AggregateFilter
+        ): Promise<PaginateResult<PaginateDocument<UserType, TMethods, O>>>;
+        paginateQuery<UserType = T, O extends PaginateOptions = PaginateOptions>(
+            filterQuery: FilterQuery<T>,
+            filter?: QueryFilter
+        ): Promise<PaginateResult<PaginateDocument<UserType, TMethods, O>>>;
+    }
+
+    interface EasyPaginateModel<T, TQueryHelpers = {}, TMethods = {}>
+        extends Model<T, TQueryHelpers, TMethods> {
+        paginateAggregate<UserType = T>(
+            stage: PipelineStage[],
+            filter?: AggregateFilter
+        ): Promise<PaginateResult<PaginateDocument<UserType, TMethods, PaginateOptions>>>;
+        paginateQuery<UserType = T>(
+            filterQuery: FilterQuery<T>,
+            filter?: QueryFilter
+        ): Promise<PaginateResult<PaginateDocument<UserType, TMethods, PaginateOptions>>>;
     }
 }
+
+declare function _(schema: mongoose.Schema): void;
+export = _;

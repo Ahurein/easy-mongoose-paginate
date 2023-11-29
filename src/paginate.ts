@@ -1,5 +1,4 @@
-import mongoose, { EasyPaginateModel, FilterQuery, PipelineStage } from 'mongoose'
-import { AggregateFilter, IPaginationResult, QueryFilter } from '..';
+import mongoose, { EasyPaginateModel, FilterQuery, Model, PipelineStage, QueryFilter, IPaginateResult, AggregateFilter } from 'mongoose'
 
 const defaultFilterValues = {
     sort: "",
@@ -28,7 +27,7 @@ const defaultLabels = {
 }
 
 
-async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginationResult<T>> {
+async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginateResult<T>> {
     const updatedFilterQuery = {
         ...defaultFilterValues,
         ...filter,
@@ -82,7 +81,7 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
     };
 }
 
-async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginationResult<T>> {
+async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginateResult<T>> {
     const filterQuery = {
         ...defaultFilterValues,
         ...filter,
@@ -144,12 +143,12 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
     };
 }
 
-export default (schema: mongoose.Schema) => {
+export default (schema: mongoose.Schema): any => {
     schema.statics.paginateAggregate = paginateAggregate;
     schema.statics.paginateQuery = paginateQuery;
 }
 
-module.exports = (schema: mongoose.Schema) => {
+module.exports = (schema: mongoose.Schema): any => {
     schema.statics.paginateAggregate = paginateAggregate;
     schema.statics.paginateQuery = paginateQuery;
 }

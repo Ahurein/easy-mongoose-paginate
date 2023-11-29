@@ -3,8 +3,18 @@ import easyMongoosePaginate from '../src/paginate';
 connect("mongodb://localhost:27017/mongoose-simple-paginate").then(() => console.log("database connected"))
 // mongoose.set("debug", true)
 
-interface UserDocument extends Document { }
-interface ProfileDocument extends Document { }
+interface IUser {
+    email: string, 
+    userVerified: boolean
+}
+interface IProfile {
+    userId: string, 
+    firstName: string,
+    lastName: string
+}
+
+interface UserDocument extends Document, IUser { }
+interface ProfileDocument extends Document, IProfile { }
 
 
 const UserSchema = new Schema({
@@ -71,19 +81,19 @@ describe("Mongoose simple pagination tests", () => {
         })
 
         it("Sort: Sort the elements in descending", async () => {
-            const user = await userModel.paginateQuery({}, { sort: { email: "desc" } })
+            const user = await userModel.paginateQuery<UserDocument>({}, { sort: { email: "desc" } })
             expect(user.docs[0].email).toEqual("c@gmail.com")
         })
 
         it("Populate: Include related", async () => {
-            const user = await profileModel.paginateQuery({}, { sort: { email: "desc" }, populate: "userId" })
+            const user = await profileModel.paginateQuery<ProfileDocument>({}, { sort: { email: "desc" }, populate: "userId" })
             expect(user.docs[0].userId).toBeInstanceOf(Object)
         })
     })
 
     describe("Test aggregate paginate", () => {
         it("Select: returns only selected fields", async () => {
-            const user = await userModel.paginateAggregate([],{ project: {"email": 1 } })
+            const user = await userModel.paginateAggregate<UserDocument>([],{ project: {"email": 1 } })
             expect(user.docs[0].email).toEqual("a@gmail.com")
             expect(user.totalDocs).toEqual(3)
             expect(user.totalPages).toEqual(1)
@@ -97,12 +107,12 @@ describe("Mongoose simple pagination tests", () => {
         })
 
         it("Sort: Sort the elements in descending", async () => {
-            const user = await userModel.paginateAggregate([],{ sort: { email: "desc" } })
+            const user = await userModel.paginateAggregate<UserDocument>([],{ sort: { email: "desc" } })
             expect(user.docs[0].email).toEqual("c@gmail.com")
         })
 
         it("Populate: Include related", async () => {
-            const user = await userModel.paginateAggregate([], { sort: { email: "desc" }, lookup: { from:"profiles", localField: "_id", foreignField: "userId", as: "userId"} })
+            const user: any = await userModel.paginateAggregate<UserDocument>([], { sort: { email: "desc" }, lookup: { from:"profiles", localField: "_id", foreignField: "userId", as: "userId"} })
             expect(user.docs[0].userId.length).toBeGreaterThanOrEqual(1)
         })
 

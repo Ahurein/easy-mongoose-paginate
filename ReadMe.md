@@ -35,7 +35,6 @@ userSchema.plugin(mongoosePaginate);
 const userModel = mongoose.model('user', userSchema);
 
 //Find query
-
 const users = await userModel.paginateQuery({}, { select: "email", limit: 10 })
 
 //Aggregate query
@@ -55,7 +54,7 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.plugin(mongoosePaginate);
-interface userDocument extends Document, UserSchemaI { }
+interface userDocument extends Document, IUserSchema { }
 
 const userModel = mongoose.model<UserDocument, EasyPaginateModel<UserDocument>>('user', userSchema);
 
