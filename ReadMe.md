@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
   /* your schema definition */
 });
 
-userSchema.plugin(mongoosePaginate);
+userSchema.plugin(easyMongoosePaginate);
 interface userDocument extends Document, IUserSchema { }
 
 const userModel = mongoose.model<UserDocument, EasyPaginateModel<UserDocument>>('user', userSchema);
