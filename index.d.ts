@@ -44,7 +44,7 @@ declare module 'mongoose' {
             locale: string;
             [key: string]: any
         } | undefined;
-        allowDiskUse: boolean
+        allowDiskUse?: boolean
     }
 
     class QueryFilter extends CommonFilter {
