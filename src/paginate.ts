@@ -1,4 +1,4 @@
-import mongoose, { EasyPaginateModel, FilterQuery, Model, PipelineStage, QueryFilter, IPaginateResult, AggregateFilter } from 'mongoose'
+import mongoose, { EasyPaginateModel, FilterQuery, PipelineStage, QueryFilter, IPaginateResult, AggregateFilter } from 'mongoose'
 
 const defaultFilterValues = {
     sort: "",

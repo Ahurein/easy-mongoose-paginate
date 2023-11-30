@@ -28,12 +28,9 @@ declare module 'mongoose' {
         | undefined;
         projection?: any;
         lean?: boolean | undefined;
-        leanWithId?: boolean | undefined;
-        offset?: number | undefined;
         page?: number | undefined;
         limit?: number | undefined;
         labels?: CustomLabels | undefined;
-        useEstimatedCount?: boolean | undefined;
         allowDiskUse?: boolean | undefined;
         options?: QueryOptions | undefined;
     }
@@ -46,7 +43,8 @@ declare module 'mongoose' {
         collation?: {
             locale: string;
             [key: string]: any
-        } | undefined
+        } | undefined;
+        allowDiskUse: boolean
     }
 
     class QueryFilter extends CommonFilter {

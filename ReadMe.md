@@ -65,7 +65,7 @@ const users = await userModel.paginateQuery({}, { select: "email", limit: 10 }) 
 const users: IPaginationResult<T> = await userModel.paginateAggregate([], { page: 2, limit: 10 }) // Usage
 ```
 
-### Model.paginate([query], [options], [callback])
+### Model.paginateQuery([query], [options])
 
 Returns promise
 
@@ -78,9 +78,26 @@ Returns promise
   - `[collation]` {Object} - Specify the collation [Documentation](https://docs.mongodb.com/manual/reference/collation/)
   - `[sort]` {Object | String} - Sort order. [Documentation](http://mongoosejs.com/docs/api.html#query_Query-sort)
   - `[populate]` {Array | Object | String} - Paths which should be populated with other documents. [Documentation](http://mongoosejs.com/docs/api.html#query_Query-populate)
-  - `[project]` {String | Object} - Get/set the query projection. [Documentation](https://mongoosejs.com/docs/api/query.html#query_Query-projection)
   - `[lean=false]` {Boolean} - Should return plain javascript objects instead of Mongoose documents? [Documentation](http://mongoosejs.com/docs/api.html#query_Query-lean)
   - `[page=1]` {Number}
+  - `[limit=10]` {Number}, Any number less than 1 will return all documents
+  - `[labels]` {Object} - Developers can provide custom labels for manipulating the response data.
+  - `[allowDiskUse]` {Boolean} - Set this to true, which allows the MongoDB server to use more than 100 MB for query. This option can let you work around QueryExceededMemoryLimitNoDiskUseAllowed errors from the MongoDB server. (Default: `False`)
+
+### Model.paginateAggregate([stage], [options])
+
+Returns promise
+
+**Parameters**
+
+- `[stage]` {Array} - Aggregate pipeline stages. [Documentation](https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/)
+- `[options]` {Object}
+
+  - `[project]` {Object | String} - Fields to return (by default returns all fields). [Documentation](https://mongoosejs.com/docs/api/aggregate.html#Aggregate.prototype.project())
+  - `[collation]` {Object} - Specify the collation [Documentation](https://docs.mongodb.com/manual/reference/collation/)
+  - `[sort]` {Object | String} - Appends a new $sort operator to this aggregate pipeline. [Documentation](https://mongoosejs.com/docs/api/aggregate.html#Aggregate.prototype.sort())
+  - `[page=1]` {Number}
+  - `[lookup]` {Object} Add related fields in aggregate [Documentation](https://mongoosejs.com/docs/api/aggregate.html#Aggregate.prototype.lookup())
   - `[limit=10]` {Number}, Any number less than 1 will return all documents
   - `[labels]` {Object} - Developers can provide custom labels for manipulating the response data.
   - `[allowDiskUse]` {Boolean} - Set this to true, which allows the MongoDB server to use more than 100 MB for query. This option can let you work around QueryExceededMemoryLimitNoDiskUseAllowed errors from the MongoDB server. (Default: `False`)
@@ -216,7 +233,7 @@ var options = {
 const books = await Book.paginateQuery(query, options)
 ```
 
-#### Zero or negative limit
+#### Zero or negative limit - Get all data
 
 You can use `limit=0` to get all the data:
 
@@ -225,7 +242,7 @@ const results = await Model.paginateAggregate([], { limit: 0 })
 
 //results
 {
-  // result.docs - empty array
+  // result.docs - all data
   // result.totalDocs
   // result.limit - 0
 };
