@@ -177,7 +177,6 @@ const myCustomLabels = {
   prevPage: 'prev',
   totalPages: 'pageCount',
   pagingCounter: 'slNo',
-  meta: 'paginator',
 };
 
 const options = {
@@ -191,15 +190,15 @@ const results = await Model.paginateAggregate([], options)
 //results
 {
   // result.itemsList [here docs become itemsList]
-  // result.paginator.itemCount = 100 [here totalDocs becomes itemCount]
-  // result.paginator.perPage = 10 [here limit becomes perPage]
-  // result.paginator.currentPage = 1 [here page becomes currentPage]
-  // result.paginator.pageCount = 10 [here totalPages becomes pageCount]
-  // result.paginator.next = 2 [here nextPage becomes next]
-  // result.paginator.prev = null [here prevPage becomes prev]
-  // result.paginator.slNo = 1 [here pagingCounter becomes slNo]
-  // result.paginator.hasNextPage = true
-  // result.paginator.hasPrevPage = false
+  // result.itemCount = 100 [here totalDocs becomes itemCount]
+  // result.perPage = 10 [here limit becomes perPage]
+  // result.currentPage = 1 [here page becomes currentPage]
+  // result.pageCount = 10 [here totalPages becomes pageCount]
+  // result.next = 2 [here nextPage becomes next]
+  // result.prev = null [here prevPage becomes prev]
+  // result.slNo = 1 [here pagingCounter becomes slNo]
+  // result.hasNextPage = true
+  // result.hasPrevPage = false
 };
 ```
 
@@ -245,6 +244,70 @@ const results = await Model.paginateAggregate([], { limit: 0 })
   // result.docs - all data
   // result.totalDocs
   // result.limit - 0
+};
+```
+
+#### Remove labels from the result
+
+Set a label to "false" to remove it from the returned result
+
+```js
+const results = await Model.paginateAggregate([], { limit: 0 }, {hasPrevPage: "false",hasNextPage: "false", pagingCounter: "false"})
+
+//results - it does not include those fields.
+{
+  // result.itemsList [here docs become itemsList]
+  // result.itemCount = 100 [here totalDocs becomes itemCount]
+  // result.perPage = 10 [here limit becomes perPage]
+  // result.currentPage = 1 [here page becomes currentPage]
+  // result.pageCount = 10 [here totalPages becomes pageCount]
+  // result.next = 2 [here nextPage becomes next]
+  // result.prev = null [here prevPage becomes prev]
+};
+```
+
+#### Set global config
+
+To avoid repetition, you can override the default options or set some options globally.
+For specific query that should be different from the config you set globally. Pass the options to paginateQuery or paginate aggregate to override the global config.
+
+```js
+import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
+
+//set options
+easyMongoosePaginateConfig.globalOptions = { limit: 1 }
+
+const results = await Model.paginateQuery([], { lean: true })
+
+//results
+{
+  // result.docs 
+  // result.totalDocs
+  // result.limit - 1     instead of 10 which id the default
+  //...
+};
+```
+
+#### Retrieve all options 
+Retrieve the current state of all the options the package is currently using. This is useful when you have set global options in a lot of places
+
+```js
+import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
+
+const options = easyMongoosePaginateConfig.getOptions()
+console.log(options)
+
+//results
+{
+    // sort: "",
+    // limit: 10,
+    // page: 1,
+    // select: "",
+    // populate: "",
+    // project: {},
+    // allowDiskUse: false,
+    // lean: false,
+    // ...
 };
 ```
 

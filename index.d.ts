@@ -1,7 +1,7 @@
-import { Aggregate, FilterQuery, HydratedDocument, LeanDocument, Model, PipelineStage, Query } from "mongoose";
+import { Aggregate, FilterQuery, HydratedDocument, LeanDocument, Model, PaginateOptions, PipelineStage, Query } from "mongoose";
 
 declare module 'mongoose' {
-    interface labels<T = string | undefined | boolean> {
+    interface ILabels<T = string> {
         totalDocs?: T;
         docs?: T;
         limit?: T;
@@ -12,27 +12,23 @@ declare module 'mongoose' {
         hasPrevPage?: T;
         totalPages?: T;
         pagingCounter?: T;
-        meta?: T;
     }
 
     interface PaginateOptions {
-        select?: object | string | undefined;
-        collation?: import('mongodb').CollationOptions | undefined;
-        sort?: object | string | undefined;
-        populate?:
-        | PopulateOptions[]
-        | string[]
-        | PopulateOptions
-        | string
-        | PopulateOptions
-        | undefined;
-        projection?: any;
-        lean?: boolean | undefined;
-        page?: number | undefined;
-        limit?: number | undefined;
-        labels?: CustomLabels | undefined;
-        allowDiskUse?: boolean | undefined;
-        options?: QueryOptions | undefined;
+        select?: string | string[] | { [key: string]: number };
+        collation?: {
+            locale: string;
+            [key: string]: any
+        } | undefined;
+        sort?: string | { [key: string]: any };
+        populate?:  string | string[];
+        lean?: boolean;
+        page?: number;
+        limit?: number;
+        labels?: ILabels ;
+        project?: { [key: string]: any };
+        allowDiskUse?: boolean;
+        lookup?: IAggregateLookup;
     }
 
     class CommonFilter {
@@ -71,9 +67,12 @@ declare module 'mongoose' {
         pagingCounter?: number;
         [labels: string]: T[] | number | boolean | null | undefined;
       } 
+
+      interface IEasyMongoosePaginateConfig {
+        globalOptions: PaginateOptions;
+        getOptions?(): PaginateOptions 
+      }
       
-
-
     type PaginateDocument<
         T,
         TMethods,
