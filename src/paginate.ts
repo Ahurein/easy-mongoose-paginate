@@ -1,6 +1,6 @@
-import mongoose, { EasyPaginateModel, FilterQuery, PipelineStage, QueryFilter, IPaginateResult, AggregateFilter } from 'mongoose'
+import mongoose, { EasyPaginateModel, FilterQuery, PipelineStage, QueryFilter, IPaginateResult, AggregateFilter, PaginateOptions, IEasyMongoosePaginateConfig } from 'mongoose'
 
-const defaultFilterValues = {
+const defaultFilterValues: PaginateOptions = {
     sort: "",
     limit: 10,
     page: 1,
@@ -10,7 +10,7 @@ const defaultFilterValues = {
     allowDiskUse: false,
     lean: false,
     labels: {},
-    collation: undefined
+    collation: undefined,
 }
 
 const defaultLabels = {
@@ -26,21 +26,30 @@ const defaultLabels = {
     pagingCounter: "pagingCounter"
 }
 
+ const easyMongoosePaginateConfig: IEasyMongoosePaginateConfig = {
+    globalOptions: {},
+}
+
+easyMongoosePaginateConfig.getOptions = () => {
+    const allOptionsSet = {...defaultFilterValues,...easyMongoosePaginateConfig.globalOptions}
+    return allOptionsSet;
+}
 
 async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilter): Promise<IPaginateResult<T>> {
     const updatedFilterQuery = {
         ...defaultFilterValues,
-        ...filter,
+        ...easyMongoosePaginateConfig.globalOptions,
+        ...filter
     }
     let { limit, page, sort, select, allowDiskUse, populate, labels, collation } = updatedFilterQuery;
     const resultLabels = { ...defaultLabels, ...labels }
 
     if (!page || page < 1) { page = 1 }
-    if(limit < 1) { limit = 0}
+    if (limit < 1) { limit = 0 }
 
     filterQuery = filterQuery || {}
     const model = this as EasyPaginateModel<T>;
-    
+
     const query = model.find(filterQuery)
 
     if (collation && Object.keys(collation).length) {
@@ -67,30 +76,35 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
     const total = await countQuery.countDocuments().exec();
     const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
 
-    return {
+
+    const results = {
         [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
-        [resultLabels.hasNextPage]: limit < 1? false : page * limit < total,
+        [resultLabels.hasNextPage]: limit < 1 ? false : page * limit < total,
         [resultLabels.hasPrevPage]: page > 1,
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
         [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null,
-    };
+    }
+
+    delete results["false"];
+    return results;
 }
 
 async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateFilter): Promise<IPaginateResult<T>> {
     const filterQuery = {
         ...defaultFilterValues,
-        ...filter,
+        ...easyMongoosePaginateConfig.globalOptions,
+        ...filter
     }
     let { limit, page, sort, allowDiskUse, project, lookup, labels, collation } = filterQuery;
     const resultLabels = { ...defaultLabels, ...labels }
 
     if (!page || page < 1) { page = 1 }
-    if(limit < 1) { limit = 0}
+    if (limit < 1) { limit = 0 }
 
     const model = this as EasyPaginateModel<T>
 
@@ -129,18 +143,21 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
     const total = totalResult.length > 0 ? totalResult[0].count : 0;
     const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
 
-    return {
+    const results = {
         [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
-        [resultLabels.hasNextPage]: limit < 1? false : page * limit < total,
+        [resultLabels.hasNextPage]: limit < 1 ? false : page * limit < total,
         [resultLabels.hasPrevPage]: page > 1,
         [resultLabels.page]: page,
         [resultLabels.totalPages]: totalPages,
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
-        [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null
-    };
+        [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null,
+    }
+
+    delete results["false"];
+    return results;
 }
 
 export default (schema: mongoose.Schema): any => {
@@ -152,3 +169,6 @@ module.exports = (schema: mongoose.Schema): any => {
     schema.statics.paginateAggregate = paginateAggregate;
     schema.statics.paginateQuery = paginateQuery;
 }
+
+module.exports.easyMongoosePaginateConfig = easyMongoosePaginateConfig;
+export { easyMongoosePaginateConfig }
