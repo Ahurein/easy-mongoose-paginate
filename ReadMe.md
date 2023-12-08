@@ -266,51 +266,6 @@ const results = await Model.paginateAggregate([], { limit: 0 }, {hasPrevPage: "f
 };
 ```
 
-#### Set global config
-
-To avoid repetition, you can override the default options or set some options globally.
-For specific query that should be different from the config you set globally. Pass the options to paginateQuery or paginate aggregate to override the global config.
-
-```js
-import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
-
-//set options
-easyMongoosePaginateConfig.globalOptions = { limit: 1 }
-
-const results = await Model.paginateQuery([], { lean: true })
-
-//results
-{
-  // result.docs 
-  // result.totalDocs
-  // result.limit - 1     instead of 10 which id the default
-  //...
-};
-```
-
-#### Retrieve all options 
-Retrieve the current state of all the options the package is currently using. This is useful when you have set global options in a lot of places
-
-```js
-import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
-
-const options = easyMongoosePaginateConfig.getOptions()
-console.log(options)
-
-//results
-{
-    // sort: "",
-    // limit: 10,
-    // page: 1,
-    // select: "",
-    // populate: "",
-    // project: {},
-    // allowDiskUse: false,
-    // lean: false,
-    // ...
-};
-```
-
 
 #### AllowDiskUse for large datasets
 
