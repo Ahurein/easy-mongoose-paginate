@@ -65,6 +65,62 @@ const users = await userModel.paginateQuery({}, { select: "email", limit: 10 }) 
 const users: IPaginationResult<T> = await userModel.paginateAggregate([], { page: 2, limit: 10 }) // Usage
 ```
 
+
+### Nest Js usage
+
+Wrap model with EasyPaginateModel. Make sure you have added easy mongoose paginate as a plugin to the model else you will get a type error for EasyPaginateModel.
+
+```javascript
+//model.ts
+@Schema({ timestamps: true })
+export class Category extends BaseSchema {
+  @Prop({ required: true, unique: true })
+  name: string;
+
+  @Prop({ trim: true })
+  description: string;
+}
+
+const CategorySchema = SchemaFactory.createForClass(Category);
+CategorySchema.plugin(easyMongoosePaginate);
+export { CategorySchema };
+
+//service.ts
+import { EasyPaginateModel } from 'mongoose';
+
+@Injectable()
+export class CategoryService {
+  constructor(
+    @InjectModel(Category.name)
+    private categoryModel: EasyPaginateModel<Category>,
+  ) {}
+
+    public async getAllCategories(query: CommonQuery) {
+    const categories = await this.categoryModel.paginateQuery(
+      { isDeleted: false },
+      query,
+    );
+    console.log(categories)
+    //results
+    {
+      // result.docs
+      // result.totalDocs = 100
+      // result.limit = 10
+      // result.page = 1
+      // result.totalPages = 10
+      // result.hasNextPage = true
+      // result.nextPage = 2
+      // result.hasPrevPage = false
+      // result.prevPage = null
+      // result.pagingCounter = 1
+    };
+  }
+
+}
+
+
+```
+
 ### Model.paginateQuery([query], [options])
 
 Returns promise
@@ -266,6 +322,50 @@ const results = await Model.paginateAggregate([], { limit: 0 }, {hasPrevPage: "f
 };
 ```
 
+#### Set global config
+
+To avoid repetition, you can override the default options or set some options globally.
+For specific query that should be different from the config you set globally. Pass the options to paginateQuery or paginate aggregate to override the global config.
+
+```js
+import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
+
+//set options
+easyMongoosePaginateConfig.globalOptions = { limit: 1 }
+
+const results = await Model.paginateQuery([], { lean: true })
+
+//results
+{
+  // result.docs 
+  // result.totalDocs
+  // result.limit = 1     instead of 10 which is the default
+  //...
+};
+```
+
+#### Retrieve all options 
+Retrieve the current state of all the options the package is currently using. This is useful when you have set global options in a lot of places
+
+```js
+import easyMongoosePaginate, { easyMongoosePaginateConfig } from 'easyMongoosePaginate';
+
+const options = easyMongoosePaginateConfig.getOptions()
+console.log(options)
+
+//results
+{
+    // sort: "",
+    // limit: 1,
+    // page: 1,
+    // select: "",
+    // populate: "",
+    // project: {},
+    // allowDiskUse: false,
+    // lean: false,
+    // ...
+};
+```
 
 #### AllowDiskUse for large datasets
 
