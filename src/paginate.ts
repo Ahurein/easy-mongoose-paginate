@@ -78,7 +78,6 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
 
 
     const results = {
-        [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
         [resultLabels.hasNextPage]: limit < 1 ? false : page * limit < total,
@@ -88,6 +87,7 @@ async function paginateQuery<T>(filterQuery?: FilterQuery<T>, filter?: QueryFilt
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
         [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null,
+        [resultLabels.docs]: data
     }
 
     delete results["false"];
@@ -144,7 +144,6 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
     const totalPages = limit < 1 ? 0 : Math.ceil(total / limit)
 
     const results = {
-        [resultLabels.docs]: data,
         [resultLabels.totalDocs]: total,
         [resultLabels.limit]: limit,
         [resultLabels.hasNextPage]: limit < 1 ? false : page * limit < total,
@@ -154,6 +153,7 @@ async function paginateAggregate<T>(stage?: PipelineStage[], filter?: AggregateF
         [resultLabels.pagingCounter]: (page - 1) * limit + 1,
         [resultLabels.prevPage]: totalPages > 1 && page > 1 ? page - 1 : null,
         [resultLabels.nextPage]: totalPages > 1 && page < totalPages && limit > 0 ? page + 1 : null,
+        [resultLabels.docs]: data
     }
 
     delete results["false"];

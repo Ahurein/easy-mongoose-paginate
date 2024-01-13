@@ -21,11 +21,11 @@ declare module 'mongoose' {
             [key: string]: any
         } | undefined;
         sort?: string | { [key: string]: any };
-        populate?:  string | string[];
+        populate?: string | string[];
         lean?: boolean;
         page?: number;
         limit?: number;
-        labels?: ILabels ;
+        labels?: ILabels;
         project?: { [key: string]: any };
         allowDiskUse?: boolean;
         lookup?: IAggregateLookup;
@@ -66,13 +66,13 @@ declare module 'mongoose' {
         nextPage?: number | null;
         pagingCounter?: number;
         [labels: string]: T[] | number | boolean | null | undefined;
-      } 
+    }
 
-      interface IEasyMongoosePaginateConfig {
+    interface IEasyMongoosePaginateConfig {
         globalOptions: PaginateOptions;
-        getOptions?(): PaginateOptions 
-      }
-      
+        getOptions?(): PaginateOptions
+    }
+
     type PaginateDocument<
         T,
         TMethods,
@@ -123,3 +123,6 @@ declare module 'mongoose' {
 
 declare function _(schema: mongoose.Schema): void;
 export = _;
+declare namespace _ {
+    const easyMongoosePaginateConfig: { globalOptions: PaginateOptions, getOptions: () => PaginateOptions };
+}
