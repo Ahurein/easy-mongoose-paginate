@@ -46,7 +46,7 @@ const users = await userModel.paginateAggregate([], { page: 1, limit: 10 })
 Easy-mongoose-paginate ship with it's own type definition. There is no need to install types for it.
 
 ```ts
-import easyMongoosePaginate  from 'easy-mongoose-paginate';
+import * as easyMongoosePaginate  from 'easy-mongoose-paginate';
 import { EasyPaginateModel } from 'mongoose';
 
 const userSchema = new mongoose.Schema({
